@@ -38,3 +38,9 @@ export function transfer(
     [...log, record],
   ];
 }
+/// Every record involving this account, in the order it happened. The log is
+/// append-only, so the slice is already chronological — sorting it would only
+/// hide a bug if that ever stopped being true.
+export function history(records: TransferRecord[], accountId: string): TransferRecord[] {
+  return records.filter((r) => r.from === accountId || r.to === accountId);
+}
