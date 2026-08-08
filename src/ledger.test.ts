@@ -80,3 +80,4 @@ test('balanceAt ignores accounts it was not asked about', () => {
   assert.equal(balanceAt(log, 'alice', 100, 999), 100);
 });
 // comment inclusion
+// Yet another comment.
