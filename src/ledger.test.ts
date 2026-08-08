@@ -84,4 +84,4 @@ test('transfer records the balances it produced', () => {
   assert.equal(log[0].toBalance, 40);
 });
 
-// This is a comment
+// This is a comment that was neceesaary to show a completed milestone.
