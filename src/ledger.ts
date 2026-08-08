@@ -5,6 +5,10 @@ export type TransferRecord = {
   to: string;
   amount: number;
   timestamp: number;
+    /// Balances AFTER this transfer settled. Storing them makes any historical
+  /// balance a lookup instead of a replay.
+  fromBalance: number;
+  toBalance: number;
 };
 
 export function balanceOf(account: Account): number {
@@ -29,6 +33,8 @@ export function transfer(
     to: to.id,
     amount,
     timestamp: Date.now(),
+    fromBalance: from.balance - amount,
+    toBalance: to.balance + amount,
   };
 
   return [
@@ -43,4 +49,21 @@ export function transfer(
 /// hide a bug if that ever stopped being true.
 export function history(records: TransferRecord[], accountId: string): TransferRecord[] {
   return records.filter((r) => r.from === accountId || r.to === accountId);
+}
+
+/// What this account held at `at`: the balance left by the most recent transfer
+/// it was party to. Undefined when it had no activity yet — the caller still
+/// holds the opening balance in that case, and this module never saw it.
+export function balanceAt(
+  records: TransferRecord[],
+  accountId: string,
+  at: number,
+): number | undefined {
+  for (let i = records.length - 1; i >= 0; i--) {
+    const r = records[i];
+    if (r.timestamp > at) continue;
+    if (r.from === accountId) return r.fromBalance;
+    if (r.to === accountId) return r.toBalance;
+  }
+  return undefined;
 }
