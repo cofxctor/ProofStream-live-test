@@ -61,3 +61,4 @@ export function balanceAt(
       return balance;
     }, openingBalance);
 }
+// having to do this multiple times is crazy
