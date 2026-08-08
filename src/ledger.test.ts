@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { history, transfer, type Account, type TransferRecord } from './ledger';
+import { balanceAt, history, transfer, type Account, type TransferRecord } from './ledger';
 
 const alice = (): Account => ({ id: 'alice', balance: 100 });
 const bob = (): Account => ({ id: 'bob', balance: 10 });
@@ -58,4 +58,24 @@ test('history returns only the records involving an account', () => {
 
   assert.equal(history(log, 'alice').length, 2);
   assert.equal(history(log, 'nobody').length, 0);
+});
+test('balanceAt reconstructs a balance after sending and receiving', () => {
+  const log: TransferRecord[] = [
+    { from: 'alice', to: 'bob', amount: 30, timestamp: 100 },
+    { from: 'carol', to: 'alice', amount: 10, timestamp: 200 },
+    { from: 'alice', to: 'bob', amount: 5, timestamp: 300 },
+  ];
+  assert.equal(balanceAt(log, 'alice', 100, 150), 70);
+  assert.equal(balanceAt(log, 'alice', 100, 250), 80);
+  assert.equal(balanceAt(log, 'alice', 100, 999), 75);
+});
+
+test('balanceAt before any activity is the opening balance', () => {
+  const log: TransferRecord[] = [{ from: 'alice', to: 'bob', amount: 30, timestamp: 100 }];
+  assert.equal(balanceAt(log, 'alice', 100, 50), 100);
+});
+
+test('balanceAt ignores accounts it was not asked about', () => {
+  const log: TransferRecord[] = [{ from: 'carol', to: 'dave', amount: 30, timestamp: 100 }];
+  assert.equal(balanceAt(log, 'alice', 100, 999), 100);
 });
