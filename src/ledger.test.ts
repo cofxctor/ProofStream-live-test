@@ -83,3 +83,5 @@ test('transfer records the balances it produced', () => {
   assert.equal(log[0].fromBalance, 70);
   assert.equal(log[0].toBalance, 40);
 });
+
+// This is a comment
