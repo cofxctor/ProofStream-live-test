@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { history, transfer, type Account, type TransferRecord } from './ledger';
+import { balanceAt, history, transfer, type Account, type TransferRecord } from './ledger';
 
 const alice = (): Account => ({ id: 'alice', balance: 100 });
 const bob = (): Account => ({ id: 'bob', balance: 10 });
@@ -58,4 +58,28 @@ test('history returns only the records involving an account', () => {
 
   assert.equal(history(log, 'alice').length, 2);
   assert.equal(history(log, 'nobody').length, 0);
+});
+
+test('balanceAt reconstructs a balance after sending and receiving', () => {
+  const log: TransferRecord[] = [
+    { from: 'alice', to: 'bob', amount: 30, timestamp: 100, fromBalance: 70, toBalance: 30 },
+    { from: 'carol', to: 'alice', amount: 10, timestamp: 200, fromBalance: 90, toBalance: 80 },
+    { from: 'alice', to: 'bob', amount: 5, timestamp: 300, fromBalance: 75, toBalance: 35 },
+  ];
+  assert.equal(balanceAt(log, 'alice', 150), 70);
+  assert.equal(balanceAt(log, 'alice', 250), 80);
+  assert.equal(balanceAt(log, 'alice', 999), 75);
+});
+
+test('balanceAt is undefined before the account has any activity', () => {
+  const log: TransferRecord[] = [
+    { from: 'alice', to: 'bob', amount: 30, timestamp: 100, fromBalance: 70, toBalance: 30 },
+  ];
+  assert.equal(balanceAt(log, 'alice', 50), undefined);
+});
+
+test('transfer records the balances it produced', () => {
+  const [, , log] = transfer(alice(), bob(), 30);
+  assert.equal(log[0].fromBalance, 70);
+  assert.equal(log[0].toBalance, 40);
 });
