@@ -94,3 +94,16 @@ test('a transfer to yourself counts both ways and nets to zero', () => {
   const [, , log] = transfer(alice(), alice(), 5);
   assert.deepEqual(summary(log, 'alice'), { sent: 5, received: 5, net: 0, count: 1 });
 });
+
+test('toCsv writes a header and one row per line', () => {
+  const [, , log] = transfer(alice(), bob(), 25);
+  const rows = toCsv(statement(log, 'alice', 100)).split('\n');
+  assert.equal(rows[0], 'from,to,amount,timestamp,balance');
+  assert.equal(rows.length, 2);
+  assert.ok(rows[1].startsWith('alice,bob,25,'));
+  assert.ok(rows[1].endsWith(',75'));
+});
+
+test('an empty statement is the header alone', () => {
+  assert.equal(toCsv([]), 'from,to,amount,timestamp,balance');
+});
