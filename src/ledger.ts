@@ -62,3 +62,18 @@ export function statement(
     return { record, balance };
   });
 }
+
+export type AccountSummary = { sent: number; received: number; net: number; count: number };
+
+/// What an account moved, over the records that involve it. `net` is what it
+/// gained: received minus sent, so a payer's net is negative.
+export function summary(records: TransferRecord[], accountId: string): AccountSummary {
+  const mine = history(records, accountId);
+  let sent = 0;
+  let received = 0;
+  for (const r of mine) {
+    if (r.from === accountId) sent += r.amount;
+    if (r.to === accountId) received += r.amount;
+  }
+  return { sent, received, net: received - sent, count: mine.length };
+}

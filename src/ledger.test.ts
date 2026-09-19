@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { history, statement, transfer, type Account, type TransferRecord } from './ledger';
+import { history, statement, summary, transfer, type Account, type TransferRecord } from './ledger';
 
 const alice = (): Account => ({ id: 'alice', balance: 100 });
 const bob = (): Account => ({ id: 'bob', balance: 10 });
@@ -77,4 +77,20 @@ test('a transfer to yourself nets to zero and still appears', () => {
   const lines = statement(log, 'alice', 100);
   assert.equal(lines.length, 1);
   assert.equal(lines[0].balance, 100);
+});
+
+test('summary totals what an account sent and received', () => {
+  let log: TransferRecord[] = [];
+  [, , log] = transfer(alice(), bob(), 25, log);
+  [, , log] = transfer(carol(), alice(), 10, log);
+  assert.deepEqual(summary(log, 'alice'), { sent: 25, received: 10, net: -15, count: 2 });
+});
+
+test('an account with no records summarises to zero', () => {
+  assert.deepEqual(summary([], 'nobody'), { sent: 0, received: 0, net: 0, count: 0 });
+});
+
+test('a transfer to yourself counts both ways and nets to zero', () => {
+  const [, , log] = transfer(alice(), alice(), 5);
+  assert.deepEqual(summary(log, 'alice'), { sent: 5, received: 5, net: 0, count: 1 });
 });
