@@ -77,3 +77,12 @@ export function summary(records: TransferRecord[], accountId: string): AccountSu
   }
   return { sent, received, net: received - sent, count: mine.length };
 }
+
+/// A statement as CSV: a header row, then one row per line. Values are written
+/// as they are held, so nothing is rounded on the way out.
+export function toCsv(lines: StatementLine[]): string {
+  const rows = lines.map((l) =>
+    [l.record.from, l.record.to, l.record.amount, l.record.timestamp, l.balance].join(','),
+  );
+  return ['from,to,amount,timestamp,balance', ...rows].join('\n');
+}
